@@ -19,6 +19,9 @@ export const typeOrmConfig: TypeOrmModuleOptions = {
   database: 'auto-one',
   entities: [__dirname + '/../**/*.entity.{js,ts}'],
   //synchronize: process.env.TYPEORM_SYNC || dbConfig.synchronize,
+  
   synchronize: true,
 };
+
+
  

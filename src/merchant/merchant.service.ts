@@ -22,9 +22,7 @@ export class MerchantService {
   } 
 
   async getMerchants():Promise<Merchant[]>{
-    const merchants = this.merchantRepository.find({})
-      // return this.merchantRepository.getAllMerchants();
-      // return  this.merchantRepository.find({ relations: ['bid'] })
+    const merchants = await this.merchantRepository.find({});
       return merchants;
     }
 
@@ -34,6 +32,14 @@ export class MerchantService {
 
     async deleteMerchant(id:string){
       return await this.merchantRepository.delete(id)
+    }
+
+    async getAllBids(){
+      return this.merchantRepository.getBids()
+    }
+
+    async oneBidMerchant(bId, mId){
+      return await this.merchantRepository.oneBidMerchant(bId, mId)
     }
 
 }

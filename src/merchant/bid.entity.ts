@@ -1,4 +1,4 @@
-import { BaseEntity, Column, Entity,JoinColumn,OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { BaseEntity, Column, Entity,JoinColumn,ManyToOne,OneToMany,OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Merchant } from "./merchant.entity";
 
 @Entity("bid")
@@ -15,11 +15,9 @@ export class Bid extends BaseEntity {
   @Column()
   created: string;
 
-@OneToOne(
-  type => Merchant,
-  merchant => merchant.id,
-{ eager: false, cascade:true })
+@ManyToOne(
+  () => Merchant,
+  merchant => merchant.bid,
+)
   merchant: Merchant;
-
-  
 }

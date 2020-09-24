@@ -1,67 +1,82 @@
 import { Merchant } from './merchant.entity';
-import { EntityRepository, Repository } from 'typeorm';
+import { EntityRepository, getManager, Repository } from 'typeorm';
 import { ForbiddenException, Logger } from '@nestjs/common';
 import { MerchantDto } from './merchant.dto';
+import { Bid } from './bid.entity';
 
 @EntityRepository(Merchant)
 export class MerchantRepository extends Repository<Merchant> {
-  private logger = new Logger('MerchantRepository');
 
-  async getAllMerchants() {
-    const query = this.createQueryBuilder('merchant')
-    .innerJoinAndSelect("merchant.bid", "bid")
-      .getMany();
-    return query;
+  async getOne(id: string) {
+    const one = await this.findOne({ id });
+    return one;
   }
 
-  async getOne(id:string){
-    const one = await this.findOne({id});
-    // console.log('one',sone)
-    return one;
+  async getBids() {
+    return await getManager()
+      .getRepository(Bid)
+      .find({});
+  }
+
+  async oneBidMerchant(bId, mId) {
+    return await this.addBidToMerchant(bId, mId);
   }
 
   async createMerchant(merchant: MerchantDto) {
     const newMerchant = new Merchant();
+    const bidSize = Math.floor(Math.random() * 90) + 1;
+    let manager = [];
+
+    for (let i = 1; i < bidSize; i++) {
+      manager.push(
+        await getManager()
+          .getRepository(Bid)
+          .findOne(i),
+      );
+    }  
+
+
     newMerchant.firstname = merchant.firstname;
     newMerchant.lastname = merchant.lastname;
     newMerchant.avatarurl = merchant.avatarUrl;
     newMerchant.email = merchant.email;
     newMerchant.phone = merchant.phone;
     newMerchant.haspremium = merchant.haspremium;
-    newMerchant.bidId = merchant.bidId;
-    newMerchant.bid = merchant.bid;
-
-    return newMerchant.save();
+    newMerchant.bid = manager;
+    return await this.save(newMerchant);
   }
 
-  async editMerchant(merchant){
-    // const once = await this.getOne(id)
-
-    const foundMerchant = await this.findOne({id:merchant.id});
-    // console.log('foundMerchant',foundMerchant)
-    // console.log('merchant-dise', foundMerchant)
-    
+  async editMerchant(merchant) {
+    const foundMerchant = await this.findOne({ id: merchant.id });
     foundMerchant.firstname = merchant.firstname;
     foundMerchant.lastname = merchant.lastname;
-    foundMerchant.avatarurl = merchant.avatarUrl;
+    foundMerchant.avatarurl = merchant.avatarurl;
     foundMerchant.email = merchant.email;
     foundMerchant.phone = merchant.phone;
     foundMerchant.haspremium = merchant.haspremium;
-    foundMerchant.bidId = merchant.bidId;
-    foundMerchant.bid = merchant.bid;
+    try {
+      return this.save(foundMerchant);
+    } catch (e) {
+      throw new ForbiddenException('Unauthorized!');
+    }
+  }
 
-    // let updated;
-    // if (merchant.bidId === foundMerchant.bidId) {
-    //   console.log(foundMerchant); 
-      try {
-        return this.save(foundMerchant);
-      } catch (e) {
-        throw new ForbiddenException("Unauthorized!");
-      }
-    // } 
-    // else { 
-    //   console.log('updated',updated)
-    //   return updated;
-    // }
+  async getMerchantBid() {
+    const merchants = await this.find({});
+    return merchants.map(bid => bid.bid);
+  }
+
+  async addBidToMerchant(bidId, mercId) {
+    const oneMerchant = await this.findOne({ id: mercId });
+    const oneBid = await getManager()
+      .getRepository(Bid)
+      .findOne(bidId);
+    // const bidToAdd =  await getManager().getRepository(Bid).findOne(toAdd);
+
+    oneMerchant.bid.push(oneBid);
+    oneMerchant.save();
+
+    return { oneMerchant, oneBid };
+
   }
 }

@@ -28,11 +28,8 @@ export class Merchant extends BaseEntity{
     @Column()
     haspremium: string;
 
-    @OneToMany(() => Bid, bid => bid.merchant)
-    @JoinTable()
-    bid: Bid;
-
-    @Column({ nullable: true })
-    bidId:string 
+    @OneToMany(type => Bid, bid => bid.merchant,
+        {onDelete:'CASCADE', onUpdate:'CASCADE', eager:true})
+    bid: Bid[];
 }
 
